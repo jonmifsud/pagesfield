@@ -175,13 +175,25 @@
 		function prepareTableValue($data, XMLElement $link=NULL){
 			// stop when no page is set
 			if(!isset($data['page_id'])) return;
+			
+			$where =  "p.`id` = {$data['page_id']}";
+			if (is_array($data['page_id'])){
+				foreach ($data['page_id'] as $key => $value){
+					if ($key==0){
+						$where = "p.`id` = {$value}";
+					}
+					else {
+						$where .= " OR p.`id` = {$value}";
+					}
+				}
+			} 
 
 			$pages = Symphony::Database()->fetch("
 				SELECT
 					p.*
 				FROM
 					`tbl_pages` AS p
-				WHERE p.`id` = {$data['page_id']}
+				WHERE {$where}
 				ORDER BY
 					p.sortorder ASC
 			");
@@ -204,7 +216,7 @@
 				$result[$p['id']] = $title;
 			}
 
-			$value = $title;
+			$value= implode ( ', ' , $result );
 
 			return parent::prepareTableValue(array('value' => General::sanitize($value)), $link);
 		}
